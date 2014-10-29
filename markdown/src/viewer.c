@@ -56,18 +56,22 @@ struct _MarkdownViewerPrivate
 };
 
 static void markdown_viewer_finalize (GObject *object);
-gboolean renderable(guchar *buf, gssize len);
 static GParamSpec *viewer_props[N_PROPERTIES] = { NULL };
 
 G_DEFINE_TYPE (MarkdownViewer, markdown_viewer, WEBKIT_TYPE_WEB_VIEW)
 
 
-//===================================================================
-
-
 /** TODO FIXME TESTING **/
-gboolean renderable(guchar *buf, gssize len)
+gboolean renderable(guchar *buf, gsize len)
 {
+  /*
+   * the g_content_type_guess function takes 4 args:
+   *     const gchar *filename,
+   *     const guchar *data,
+   *     gsize data_size,
+   *     gboolean *result_uncertain
+   * the filename is going to be passed as NULL
+   */
   gboolean uncertain = FALSE;
 
   static const gchar *valid_types[] = {
@@ -79,29 +83,33 @@ gboolean renderable(guchar *buf, gssize len)
   if (len < 0)
     len = strlen((gchar*) buf);
 
-  gchar *tp = g_content_type_guess(NULL, buf, len, &uncertain);
+  gchar *guess = g_content_type_guess(NULL, buf, len, &uncertain);
 
   if (uncertain) {
-    g_free(tp);
+    g_free(guess);
+    return FALSE;
+  }
+  if (uncertain == NULL) {
+    g_free(guess);
     return FALSE;
   }
 
-  gchar * mime_type = g_content_type_get_mime_type(tp);
+  gchar * mime_type = g_content_type_get_mime_type(guess);
   const gchar **ptr = valid_types;
-  for (; *ptr; ptr++)
+  if (mime_type != NULL)
   {
-    if (g_strcmp0(*ptr, mime_type) == 0)
+    for (; *ptr; ptr++)
     {
-      g_free(mime_type);
-      return TRUE;
+      if (g_strcmp0(*ptr, mime_type) == 0)
+      {
+        g_free(mime_type);
+        return TRUE;
+      }
     }
   }
   g_free(mime_type);
   return FALSE;
 }
-
-
-//==================================================================
 
 
 static GString *

@@ -153,12 +153,16 @@ markdown_config_load_template_text(MarkdownConfig *conf)
 
   g_object_get(conf, "template-file", &tmpl_file, NULL);
 
+
   g_free(conf->priv->tmpl_text);
   conf->priv->tmpl_text = NULL;
   conf->priv->tmpl_text_len = 0;
 
-  if (!renderable(conf->priv->tmpl_text, conf->priv->tmpl_text_len))
+  /* could this be the issue? */
+  if (renderable((guchar *)conf->priv->tmpl_text, conf->priv->tmpl_text_len) == FALSE)
   {
+    /* Is this all we want to do?  I don't know if we should re-set a
+     * conf->priv->tmpl_text variable or something. */
     g_warning("Error reading template file: %s", error->message);
     g_error_free(error);
     error = NULL;
