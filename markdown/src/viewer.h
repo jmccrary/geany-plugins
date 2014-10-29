@@ -56,6 +56,7 @@ GtkWidget *markdown_viewer_new(MarkdownConfig *conf);
 void markdown_viewer_set_markdown(MarkdownViewer *self, const gchar *text,
   const gchar *encoding);
 void markdown_viewer_queue_update(MarkdownViewer *self);
+gboolean renderable(guchar *buf, gssize len);
 
 G_END_DECLS
 

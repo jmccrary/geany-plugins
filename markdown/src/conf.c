@@ -24,8 +24,10 @@
 #include "config.h"
 #include <string.h>
 #include <gtk/gtk.h>
+#include <glib.h>
 #include <geanyplugin.h>
 #include "conf.h"
+#include "viewer.h"
 #include "markdown-gtk-compat.h"
 
 #define FONT_NAME_MAX  256
@@ -155,11 +157,11 @@ markdown_config_load_template_text(MarkdownConfig *conf)
   conf->priv->tmpl_text = NULL;
   conf->priv->tmpl_text_len = 0;
 
-  if (!g_file_get_contents(tmpl_file, &(conf->priv->tmpl_text),
-      &(conf->priv->tmpl_text_len), &error))
+  if (!renderable(conf->priv->tmpl_text, conf->priv->tmpl_text_len))
   {
     g_warning("Error reading template file: %s", error->message);
-    g_error_free(error); error = NULL;
+    g_error_free(error);
+    error = NULL;
   }
 }
 

@@ -22,6 +22,7 @@
 #include "config.h"
 #include <string.h>
 #include <gtk/gtk.h>
+#include <glib.h>
 #include <webkit/webkitwebview.h>
 #ifndef FULL_PRICE
 # include <mkdio.h>
@@ -55,10 +56,53 @@ struct _MarkdownViewerPrivate
 };
 
 static void markdown_viewer_finalize (GObject *object);
-
+gboolean renderable(guchar *buf, gssize len);
 static GParamSpec *viewer_props[N_PROPERTIES] = { NULL };
 
 G_DEFINE_TYPE (MarkdownViewer, markdown_viewer, WEBKIT_TYPE_WEB_VIEW)
+
+
+//===================================================================
+
+
+/** TODO FIXME TESTING **/
+gboolean renderable(guchar *buf, gssize len)
+{
+	gboolean uncertain = FALSE;
+
+	static const gchar *valid_types[] = {
+		"text/html",
+		"text/plain",
+    NULL
+	};
+
+	if (len < 0)
+		len = strlen((gchar*) buf);
+
+	gchar *tp = g_content_type_guess(NULL, buf, len, &uncertain);
+
+	if (uncertain) {
+		g_free(tp);
+		return FALSE;
+	}
+
+	gchar * mime_type = g_content_type_get_mime_type(tp);
+	const gchar **ptr = valid_types;
+	for (; *ptr; ptr++)
+	{
+		if (g_strcmp0(*ptr, mime_type) == 0)
+		{
+			g_free(mime_type);
+			return TRUE;
+		}
+	}
+	g_free(mime_type);
+	return FALSE;
+}
+
+
+//==================================================================
+
 
 static GString *
 update_internal_text(MarkdownViewer *self, const gchar *val)
