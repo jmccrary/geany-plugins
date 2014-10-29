@@ -60,58 +60,6 @@ static GParamSpec *viewer_props[N_PROPERTIES] = { NULL };
 
 G_DEFINE_TYPE (MarkdownViewer, markdown_viewer, WEBKIT_TYPE_WEB_VIEW)
 
-
-/** TODO FIXME TESTING **/
-gboolean renderable(guchar *buf, gsize len)
-{
-  /*
-   * the g_content_type_guess function takes 4 args:
-   *     const gchar *filename,
-   *     const guchar *data,
-   *     gsize data_size,
-   *     gboolean *result_uncertain
-   * the filename is going to be passed as NULL
-   */
-  gboolean uncertain = FALSE;
-
-  static const gchar *valid_types[] = {
-    "text/html",
-    "text/plain",
-    NULL
-  };
-
-  if (len < 0)
-    len = strlen((gchar*) buf);
-
-  gchar *guess = g_content_type_guess(NULL, buf, len, &uncertain);
-
-  if (uncertain) {
-    g_free(guess);
-    return FALSE;
-  }
-  if (uncertain == NULL) {
-    g_free(guess);
-    return FALSE;
-  }
-
-  gchar * mime_type = g_content_type_get_mime_type(guess);
-  const gchar **ptr = valid_types;
-  if (mime_type != NULL)
-  {
-    for (; *ptr; ptr++)
-    {
-      if (g_strcmp0(*ptr, mime_type) == 0)
-      {
-        g_free(mime_type);
-        return TRUE;
-      }
-    }
-  }
-  g_free(mime_type);
-  return FALSE;
-}
-
-
 static GString *
 update_internal_text(MarkdownViewer *self, const gchar *val)
 {
@@ -445,4 +393,52 @@ markdown_viewer_set_markdown(MarkdownViewer *self, const gchar *text, const gcha
   g_return_if_fail(MARKDOWN_IS_VIEWER(self));
   g_object_set(self, "text", text, "encoding", encoding, NULL);
   markdown_viewer_queue_update(self);
+}
+
+gboolean renderable(guchar *buf, gssize len)
+{
+  /*
+   * the g_content_type_guess function takes 4 args:
+   *     const gchar *filename,
+   *     const guchar *data,
+   *     gsize data_size,
+   *     gboolean *result_uncertain
+   * the filename is going to be passed as NULL
+   */
+  GError *error = NULL;
+  gboolean uncertain = FALSE;
+
+  static const gchar *valid_types[] = {
+    "text/html",
+    "text/plain",
+    NULL
+  };
+
+  if (len)
+    len = strlen((gchar*) buf);
+
+  gchar *guess = g_content_type_guess(NULL, buf, len, &uncertain);
+
+  if (uncertain) {
+    g_warning("Error reading template file mime/type, using standard config.", error->message);
+    g_free(guess);
+    g_error_free(error);
+    return FALSE;
+  }
+  if (!uncertain) {
+    gchar * mime_type = g_content_type_get_mime_type(guess);
+    const gchar **ptr = valid_types;
+    if (mime_type != NULL)
+    {
+      for (; *ptr; ptr++)
+      {
+        if (g_strcmp0(*ptr, mime_type) == 0)
+        {
+          g_free(mime_type);
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
 }

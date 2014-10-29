@@ -148,18 +148,18 @@ init_conf_file(MarkdownConfig *conf)
 static void
 markdown_config_load_template_text(MarkdownConfig *conf)
 {
+  /* I'm pretty sure this is where the issue is coming from... */
   GError *error = NULL;
   gchar *tmpl_file = NULL;
 
   g_object_get(conf, "template-file", &tmpl_file, NULL);
-
+  g_file_get_contents(tmpl_file, &(conf->priv->tmpl_text), &(conf->priv->tmpl_text_len), &error);
 
   g_free(conf->priv->tmpl_text);
   conf->priv->tmpl_text = NULL;
   conf->priv->tmpl_text_len = 0;
 
-  /* could this be the issue? */
-  if (renderable((guchar *)conf->priv->tmpl_text, conf->priv->tmpl_text_len) == FALSE)
+  if (!renderable((guchar *)tmpl_file, strlen((gchar *)tmpl_file)))
   {
     /* Is this all we want to do?  I don't know if we should re-set a
      * conf->priv->tmpl_text variable or something. */
