@@ -68,36 +68,36 @@ G_DEFINE_TYPE (MarkdownViewer, markdown_viewer, WEBKIT_TYPE_WEB_VIEW)
 /** TODO FIXME TESTING **/
 gboolean renderable(guchar *buf, gssize len)
 {
-	gboolean uncertain = FALSE;
+  gboolean uncertain = FALSE;
 
-	static const gchar *valid_types[] = {
-		"text/html",
-		"text/plain",
+  static const gchar *valid_types[] = {
+    "text/html",
+    "text/plain",
     NULL
-	};
+  };
 
-	if (len < 0)
-		len = strlen((gchar*) buf);
+  if (len < 0)
+    len = strlen((gchar*) buf);
 
-	gchar *tp = g_content_type_guess(NULL, buf, len, &uncertain);
+  gchar *tp = g_content_type_guess(NULL, buf, len, &uncertain);
 
-	if (uncertain) {
-		g_free(tp);
-		return FALSE;
-	}
+  if (uncertain) {
+    g_free(tp);
+    return FALSE;
+  }
 
-	gchar * mime_type = g_content_type_get_mime_type(tp);
-	const gchar **ptr = valid_types;
-	for (; *ptr; ptr++)
-	{
-		if (g_strcmp0(*ptr, mime_type) == 0)
-		{
-			g_free(mime_type);
-			return TRUE;
-		}
-	}
-	g_free(mime_type);
-	return FALSE;
+  gchar * mime_type = g_content_type_get_mime_type(tp);
+  const gchar **ptr = valid_types;
+  for (; *ptr; ptr++)
+  {
+    if (g_strcmp0(*ptr, mime_type) == 0)
+    {
+      g_free(mime_type);
+      return TRUE;
+    }
+  }
+  g_free(mime_type);
+  return FALSE;
 }
 
 
